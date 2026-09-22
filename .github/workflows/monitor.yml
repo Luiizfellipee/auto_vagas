@@ -1,0 +1,31 @@
+name: Monitorar vagas de Dados
+
+on:
+  schedule:
+    - cron: "15 11 * * 1"
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Restaurar snapshot anterior
+        uses: actions/cache@v4
+        with:
+          path: data
+          key: vagas-snapshot-${{ github.run_id }}
+          restore-keys: |
+            vagas-snapshot-
+      - run: python monitor.py
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          CAREER_URL: ${{ secrets.CAREER_URL }}
+          GUPY_API_URL: ${{ secrets.GUPY_API_URL }}
+          GUPY_CAREER_PAGE_ID: ${{ secrets.GUPY_CAREER_PAGE_ID }}
+          GUPY_API_TOKEN: ${{ secrets.GUPY_API_TOKEN }}
+          LOCATION_PREFIX_STRIP: ${{ secrets.LOCATION_PREFIX_STRIP }}
